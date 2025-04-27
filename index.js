@@ -23,6 +23,7 @@ app.use (express.static(path.join(__dirname,'public')));
 
 
 
+
  
 
 app.get('/proxy', (req, res) => { 
@@ -34,7 +35,12 @@ app.get('/proxy', (req, res) => {
     return res.status(400).send('Missing url parameter'); 
 
   } 
-
+if (url.endsWith('.m3u8)){
+                 res.setHeader('Content-Type',
+                               'application/vnd.apple.mpegurl');
+} else if (url.endsWith('.ts')) {
+ res.setHeader('Contend-Type' , 'video/MP2T');
+}
    
 
   // Original URL se stream fetch karke response me bhejna 
