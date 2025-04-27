@@ -41,8 +41,11 @@ if (url.endsWith('.m3u8)){
 } else if (url.endsWith('.ts')) {
  res.setHeader('Contend-Type' , 'video/MP2T');
 }
-   
-
+  
+ const proxyBase ='https://player-6z4k.onrender.com/proxy?url=';
+const modifiedBody = body.replace(/(https?:\/\/[^\s'"]+\.ts)/g, (match) => {
+ return proxyBase + encodeURIComponent (match);
+});
   // Original URL se stream fetch karke response me bhejna 
 
   request 
