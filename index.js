@@ -42,7 +42,7 @@ if (url.endsWith('.m3u8)){
  res.setHeader('Contend-Type' , 'video/MP2T');
 }
   
- const proxyBase ='https://player-6z4k.onrender.com/proxy?url=';
+ const proxyBase ='https://player-6z4k.onrender.com/proxy?url=https://allinonereborn.com/tech11.m3u8?id=1371'; 
 const modifiedBody = body.replace(/(https?:\/\/[^\s'"]+\.ts)/g, (match) => {
  return proxyBase + encodeURIComponent (match);
 });
