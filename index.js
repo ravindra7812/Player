@@ -58,7 +58,7 @@ if (url.endsWith('.m3u8)){
     .pipe(res); 
 
 }); 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || ;
 app.listen(PORT,()=>{
   console.log(`running ${PORT}`);
   
