@@ -1,7 +1,7 @@
 const express = require('express'); 
 
 const request = require('request'); 
-
+const path = require ('path');
 const app = express(); 
 
  
@@ -17,6 +17,11 @@ app.use((req, res, next) => {
   next(); 
 
 }); 
+
+
+app.use (express.static(path.join(__dirname,'public')));
+
+
 
  
 
