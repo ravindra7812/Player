@@ -1,70 +1,74 @@
-const express = require('express'); 
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const app = express();
 
-const request = require('request'); 
-const path = require ('path');
-const app = express(); 
+app.use(cors());
 
- 
-
-app.use((req, res, next) => { 
-
-  // CORS headers add karna 
-
-  res.header('Access-Control-Allow-Origin', '*'); 
-
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept'); 
-
-  next(); 
-
-}); 
-
-
-app.use (express.static(path.join(__dirname,'public')));
-
-
-
-
- 
-
-app.get('/proxy', (req, res) => { 
-
-  const url = req.query.url; 
-
-  if (!url) { 
-
-    return res.status(400).send('Missing url parameter'); 
-
-  } 
-if (url.endsWith('.m3u8)){
-                 res.setHeader('Content-Type',
-                               'application/vnd.apple.mpegurl');
-} else if (url.endsWith('.ts')) {
- res.setHeader('Contend-Type' , 'video/MP2T');
-}
-  
- const proxyBase ='https://player-6z4k.onrender.com/proxy?url=https://allinonereborn.com/tech11.m3u8?id=1371'; 
-const modifiedBody = body.replace(/(https?:\/\/[^\s'"]+\.ts)/g, (match) => {
- return proxyBase + encodeURIComponent (match);
-});
-  // Original URL se stream fetch karke response me bhejna 
-
-  request 
-
-    .get(url) 
-
-    .on('error', err => { 
-
-      res.status(500).send('Error fetching the URL'); 
-
-    }) 
-
-    .pipe(res); 
-
-}); 
-const PORT = process.env.PORT || ;
-app.listen(PORT,()=>{
-  console.log(`running ${PORT}`);
-  
+app.get('/', (req, res) => {
+  res.send('HLS Proxy Running');
 });
 
- 
+app.get('/proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).send('Missing url param');
+
+  try {
+    if (targetUrl.includes('.m3u8')) {
+      const response = await axios.get(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Referer': 'https://allinonereborn.com/',
+          'Origin': 'https://allinonereborn.com/',
+        }
+      });
+
+      let lines = response.data.split('\n');
+      const segmentLines = lines.filter(line => line.endsWith('.ts'));
+      const delayCount = 3;
+
+      const filteredLines = [];
+      let skipIndex = segmentLines.length - delayCount;
+      let segmentSeen = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.endsWith('.ts')) {
+          if (segmentSeen >= skipIndex) break;
+          const absUrl = new URL(line, targetUrl).href;
+          filteredLines.push(`${req.protocol}://${req.get('host')}/proxy?url=${encodeURIComponent(absUrl)}`);
+          segmentSeen++;
+        } else {
+          filteredLines.push(line);
+        }
+      }
+
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+      res.setHeader('Cache-Control', 'no-cache');
+      return res.send(filteredLines.join('\n'));
+    } else {
+      const stream = await axios({
+        url: targetUrl,
+        method: 'GET',
+        responseType: 'stream',
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Referer': 'https://allinonereborn.com/',
+          'Origin': 'https://allinonereborn.com/',
+        }
+      });
+
+      res.setHeader('Content-Type', 'video/MP2T');
+      res.setHeader('Cache-Control', 'no-cache');
+      stream.data.pipe(res);
+    }
+  } catch (err) {
+    console.error('Proxy error:', err.message);
+    res.status(500).send('Stream fetch failed');
+  }
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
