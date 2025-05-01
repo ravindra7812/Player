@@ -46,6 +46,7 @@ app.get('/proxy', async (req, res) => {
 
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
       res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.send(filteredLines.join('\n'));
     } else {
       const stream = await axios({
@@ -62,6 +63,7 @@ app.get('/proxy', async (req, res) => {
 
       res.setHeader('Content-Type', 'video/MP2T');
       res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Access-Control-Allow-Origin', '*');
       stream.data.pipe(res);
     }
   } catch (err) {
