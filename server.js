@@ -6,16 +6,17 @@ const app = express();
 app.use(cors());
 
 app.get('/', (req, res) => {
-  res.send('HLS Proxy Running');
+  res.send('🔁 HLS Proxy Running');
 });
 
 app.get('/proxy', async (req, res) => {
   const targetUrl = req.query.url;
-  if (!targetUrl) return res.status(400).send('Missing url param');
+  if (!targetUrl) return res.status(400).send('❌ Missing url param');
 
   try {
     if (targetUrl.includes('.m3u8')) {
       const response = await axios.get(targetUrl, {
+        maxRedirects: 5,
         headers: {
           'User-Agent': 'Mozilla/5.0',
           'Referer': 'https://allinonereborn.com/',
@@ -51,6 +52,7 @@ app.get('/proxy', async (req, res) => {
         url: targetUrl,
         method: 'GET',
         responseType: 'stream',
+        maxRedirects: 5,
         headers: {
           'User-Agent': 'Mozilla/5.0',
           'Referer': 'https://allinonereborn.com/',
@@ -63,12 +65,12 @@ app.get('/proxy', async (req, res) => {
       stream.data.pipe(res);
     }
   } catch (err) {
-    console.error('Proxy error:', err.message);
+    console.error('❌ Proxy error:', err.message);
     res.status(500).send('Stream fetch failed');
   }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
